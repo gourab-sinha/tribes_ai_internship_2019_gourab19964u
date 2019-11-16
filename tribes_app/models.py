@@ -104,7 +104,7 @@ class Ground:
             session.run(query)
             return ground_id
 
-        return ground_id[self.nodeattr]
+        return ground_id[0][self.nodeattr]
 
 
 
@@ -118,11 +118,11 @@ class City:
     def createcity(self):
         city_id =  findnode(self.nodetype,self.nodeattr,self.city_id)
         if city_id is None:
-            query = "CREATE(n:City{city_name:%s,%s:%s} RETURN n.city_id)"%(self.ground_name,self.nodeattr,self.city_id)
+            query = '''CREATE(n:City{city_name:"%s",%s:"%s"}) RETURN n.city_id'''%(self.city_name,self.nodeattr,self.city_id)
             city_id = session.run(query).single()[0]
             return city_id
 
-        return city_id[self.nodeattr]
+        return city_id[0][self.nodeattr]
 
 class State:
     def __init__(self,stateObj):
@@ -134,11 +134,11 @@ class State:
     def createstate(self):
         state_id =  findnode(self.nodetype,self.nodeattr,self.state_id)
         if state_id is None:
-            query = "CREATE(n:State{state_name:%s,%s:%s} RETURN n.state_id)"%(self.state_name,self.nodeattr,self.state_id)
+            query = '''CREATE(n:State{state_name:"%s",%s:"%s"}) RETURN n.state_id'''%(self.state_name,self.nodeattr,self.state_id)
             state_id = session.run(query).single()[0]
             return state_id
 
-        return state_id[self.nodeattr]
+        return state_id[0][self.nodeattr]
 
 class Country:
     def __init__(self,countryObj):
@@ -150,11 +150,11 @@ class Country:
     def createcountry(self):
         country_id =  findnode(self.nodetype,self.nodeattr,self.country_id)
         if country_id is None:
-            query = "CREATE(n:State{state_name:%s,%s:%s} RETURN n.country_id)"%(self.state_name,self.nodeattr,self.state_id)
+            query = '''CREATE(n:Country{country_name:"%s",%s:"%s"}) RETURN n.country_id'''%(self.country_name,self.nodeattr,self.country_id)
             country_id = session.run(query).single()[0]
             return country_id
 
-        return contry_id[self.nodeattr]
+        return country_id[0][self.nodeattr]
 
 class Match:
     def __init__(self,sportObj):
