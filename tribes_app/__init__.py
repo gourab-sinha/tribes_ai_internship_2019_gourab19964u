@@ -19,5 +19,11 @@ for team in teams:
 	teamObj = Team(team)
 	teamObj.createteam()
 
+grounds = payload["grounds"]
+for ground in grounds:
+	groundObj = Ground(ground)
+	ground_id = groundObj.createground()
+	print(ground_id)
+
 session =  graph.session()
 session.close()

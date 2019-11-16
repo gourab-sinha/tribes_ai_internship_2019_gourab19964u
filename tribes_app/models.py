@@ -69,7 +69,8 @@ class Member:
             member = session.run(query).single()[0]
             return member
 
-        return member[self.nodeattr]
+        for m_id in member:
+            return m_id
 
 
 class Ground:
@@ -104,7 +105,9 @@ class Ground:
             session.run(query)
             return ground_id
 
-        return ground_id[0][self.nodeattr]
+        # return ground_id[0][self.nodeattr]
+        for g_id in ground_id:
+            return g_id
 
 
 
@@ -122,7 +125,8 @@ class City:
             city_id = session.run(query).single()[0]
             return city_id
 
-        return city_id[0][self.nodeattr]
+        for c_id in city_id:
+            return c_id
 
 class State:
     def __init__(self,stateObj):
@@ -138,7 +142,8 @@ class State:
             state_id = session.run(query).single()[0]
             return state_id
 
-        return state_id[0][self.nodeattr]
+        for s_id in state_id:
+            return s_id
 
 class Country:
     def __init__(self,countryObj):
@@ -149,12 +154,14 @@ class Country:
 
     def createcountry(self):
         country_id =  findnode(self.nodetype,self.nodeattr,self.country_id)
+        print(country_id)
         if country_id is None:
             query = '''CREATE(n:Country{country_name:"%s",%s:"%s"}) RETURN n.country_id'''%(self.country_name,self.nodeattr,self.country_id)
             country_id = session.run(query).single()[0]
             return country_id
 
-        return country_id[0][self.nodeattr]
+        for c_id in country_id:
+            return c_id
 
 class Match:
     def __init__(self,sportObj):
