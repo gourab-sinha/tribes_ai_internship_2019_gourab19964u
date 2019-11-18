@@ -223,21 +223,34 @@ class Match:
             session.run(query)
             query = '''MATCH (a:Match),(b:Ground)
                            WHERE a.match_id = "%s" AND b.ground_id = "%s"
-                           CREATE (a)-[r:PLAYER_AT]->(b)'''%(match_id,self.match_ground)
+                           CREATE (a)-[r:PLAYED_AT]->(b)'''%(match_id,self.match_ground)
             session.run(query)
-            print(teamObj)
+            
+            query = '''MATCH (a:Match),(b:Team)
+                       WHERE a.match_id = "%s" AND b.team_id="%s"
+                       CREATE (a)-[r:WINNER]->(b)'''%(match_id,self.match_winner)
+            session.run(query)
             for team in teamObj:
                 team_id = team["id"]
-                print(team_id)
-                print("List of teams")
                 query = '''MATCH (a:Team),(b:Match)
-                           WHERE a.player_id = "%s" AND b.macth_id = "%s"
+                           WHERE a.team_id = "%s" AND b.match_id ="%s"
                            CREATE (a)-[r:PLAYED]->(b)'''%(team_id,match_id)
                 session.run(query)
-                query = '''MATCH (a:Team),(b:Team)
-                           WHERE a.player_id = "%s" AND b.macth_id = "%s"
-                           CREATE (a)-[r:PLAYED_WITH]->(b)'''%(team_id,self.match_winner)
-                session.run(query)
+            # print(team_id)
+            # print(teamObj)
+            # for team in teamObj:
+            #     team_id = team["id"]
+            #     print(team_id)
+            #     print("List of teams")
+            #     query = '''MATCH (a:Team),(b:Match)
+            #                WHERE a.team_id = "%s" AND b.macth_id = "%s"
+            #                CREATE (a)-[r:PLAYED]->(b)'''%(team_id,match_id)
+            #     session.run(query)
+            #     if team_id is not self.match_winner:
+            #         query = '''MATCH (a:Team),(b:Team)
+            #                WHERE a.team_id = "%s" AND b.macth_id = "%s"
+            #                CREATE (a)-[r:PLAYED_WITH]->(b)'''%(team_id,self.match_winner)
+            #         session.run(query)
 
 
 

@@ -6,7 +6,7 @@ from .views import app,graph,payload
 import json
 import codecs
 import os
-from .models import Team,Member,Ground
+from .models import Team,Member,Ground,Match
 
 
 # JSON File load
@@ -23,7 +23,12 @@ grounds = payload["grounds"]
 for ground in grounds:
 	groundObj = Ground(ground)
 	ground_id = groundObj.createground()
-	print(ground_id)
 
+sport = payload["sport"]
+
+sportobj = Match(sport)
+sportobj.creatematch(teams)
+
+print(teams[0]["id"])
 session =  graph.session()
 session.close()
