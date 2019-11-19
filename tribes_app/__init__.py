@@ -2,7 +2,7 @@
 # -------------------------------------------------
 # IMPORTS
 # -------------------------------------------------
-from .views import app,graph,payload
+from .views import app,graph
 import json
 import codecs
 import os
@@ -11,24 +11,27 @@ from .models import Team,Member,Ground,Match
 
 # JSON File load
 path = os.path.dirname(os.path.abspath(__file__))
-sample = os.path.join(path,'sample.json')
+sample = os.path.join(path, 'sample.json')
 payload = json.load(codecs.open(sample, 'r', 'utf-8-sig'))["payload"]
 
-teams = payload["teams"]
-for team in teams:
-	teamObj = Team(team)
-	teamObj.createteam()
 
-grounds = payload["grounds"]
-for ground in grounds:
-	groundObj = Ground(ground)
-	ground_id = groundObj.createground()
+def load_data(pay_load):
+	teams = pay_load["teams"]
+	for team in teams:
+		team_obj = Team(team)
+		team_obj.create_team()
+	
+	grounds = pay_load["grounds"]
+	for ground in grounds:
+		ground_obj = Ground(ground)
+		ground_id = ground_obj.create_ground()
+	
+	sport = payload["sport"]
+	sport_obj = Match(sport)
+	sport_obj.create_match(teams)
 
-sport = payload["sport"]
 
-sportobj = Match(sport)
-sportobj.creatematch(teams)
+load_data(payload)
 
-print(teams[0]["id"])
-session =  graph.session()
+session = graph.session()
 session.close()

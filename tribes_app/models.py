@@ -4,18 +4,16 @@
 # -------------------------------------------------
 from neo4j import GraphDatabase
 from datetime import datetime
-import os
-import uuid
-import json
-import codecs
 from .views import graph
+import datetime
 
-# Session 
+# Session
 session = graph.session()
 
-# Find Function to find a node in Graph Database
-def findnode(nodetype,nodeattr,nodeid):
-    query = "MATCH (j:%s {%s:'%s'}) RETURN j.%s"%(nodetype,nodeattr,str(nodeid),nodeattr)
+
+# Function to find a node in Graph Database
+def find_node(node_type, node_attr, node_id):
+    query = "MATCH (j:%s {%s:'%s'}) RETURN j.%s" % (node_type, node_attr, str(node_id), node_attr)
     obj = session.run(query).single()
     return obj
 
@@ -25,40 +23,44 @@ def findnode(nodetype,nodeattr,nodeid):
 # -------------------------------------------------
 class Team:
 
-    def __init__(self,teamObj):
-        self.team_name = teamObj["name"]
-        self.team_id = teamObj["id"]
-        self.members = teamObj["members"]
-        self.nodetype = "Team"
-        self.nodeattr = "team_id"
+    def __init__(self, team_obj):
+        self.team_name = team_obj["name"]
+        self.team_id = team_obj["id"]
+        self.members = team_obj["members"]
+        self.node_type = "Team"
+        self.node_attr = "team_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def createteam(self):
-        team_id =  findnode(self.nodetype,self.nodeattr,self.team_id)
+    def create_team(self):
+        team_id = find_node(self.node_type, self.node_attr, self.team_id)
         if team_id is None:
-            query = '''CREATE(n:Team{team_name:"%s",%s:"%s"}) RETURN n.team_id'''%(self.team_name,self.nodeattr,self.team_id)
+            query = '''CREATE(n:Team{team_name:"%s",%s:"%s",time_created:"%s"}) 
+                       RETURN n.team_id''' % (self.team_name, self.node_attr, self.team_id, self.time_created)
             team_id = session.run(query).single()[0]
             for member in self.members:
-                memberObj = Member(member)
-                player_id = memberObj.createmember()
+                member_obj = Member(member)
+                player_id = member_obj.create_member()
                 query = '''MATCH (a:Player),(b:Team)
                            WHERE a.player_id = '%s' AND b.team_id = '%s'
-                           CREATE (a)-[:Play_for]->(b)'''%(player_id,team_id)
+                           CREATE (a)-[:Play_for]->(b)''' % (player_id, team_id)
                 session.run(query)
 
 
-
 class Member:
-    def __init__(self,memberObj):
-        self.member_name = memberObj["name"]
-        self.member_id = memberObj["player_id"]
-        self.member_age = memberObj["age"]
-        self.nodetype = "Player"
-        self.nodeattr = "player_id"
+    def __init__(self, member_obj):
+        self.member_name = member_obj["name"]
+        self.member_id = member_obj["player_id"]
+        self.member_age = member_obj["age"]
+        self.node_type = "Player"
+        self.node_attr = "player_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def createmember(self):
-        member =  findnode(self.nodetype,self.nodeattr,self.member_id)
+    def create_member(self):
+        member = find_node(self.node_type, self.node_attr, self.member_id)
         if member is None:
-            query = '''CREATE(n:Player{player_name:"%s",%s:"%s",age:"%s"}) RETURN n.player_id'''%(self.member_name,self.nodeattr,self.member_id,self.member_age)
+            query = '''CREATE(n:Player{player_name:"%s",%s:"%s",age:"%s",time_created:"%s"}) 
+                       RETURN n.player_id''' % (
+                       self.member_name, self.node_attr, self.member_id, self.member_age, self.time_created)
             member = session.run(query).single()[0]
             return member
 
@@ -67,199 +69,185 @@ class Member:
 
 
 class Ground:
-    def __init__(self,groundObj):
-        self.ground_name = groundObj["ground_id"]
-        self.ground_id = groundObj["ground_id"]
-        self.ground_loc = groundObj["location"]
-        self.ground_host = groundObj["host_international"]
-        self.nodetype = "Ground"
-        self.nodeattr = "ground_id"
+    def __init__(self, ground_obj):
+        self.ground_name = ground_obj["ground_id"]
+        self.ground_id = ground_obj["ground_id"]
+        self.ground_loc = ground_obj["location"]
+        self.ground_host = ground_obj["host_international"]
+        self.node_type = "Ground"
+        self.node_attr = "ground_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
-    def createground(self):
-        ground_id =  findnode(self.nodetype,self.nodeattr,self.ground_id) 
+    def create_ground(self):
+        ground_id = find_node(self.node_type, self.node_attr, self.ground_id)
         if ground_id is None:
             query = '''CREATE(n:Ground{ground_name:"%s",%s:"%s",
-                       host_international:"%s"}) RETURN n.ground_id'''%(
-                       self.ground_name,self.nodeattr,self.ground_id,self.ground_host)
+                       host_international:"%s",time_created:"%s"}) RETURN n.ground_id''' % (
+                       self.ground_name, self.node_attr, self.ground_id, self.ground_host, self.time_created)
 
             if self.ground_host is True:
-                international = {"name":"International","id":"International"}
-                intObj = International(international)
-                int_id = intObj.createinternational()
+                international = {"name": "International", "id": "International"}
+                int_obj = International(international)
+                int_id = int_obj.create_international()
             else:
-                international = {"name":"Domestic","id":"Domestic"}
-                intObj = International(international)
-                int_id = intObj.createinternational()
+                international = {"name": "Domestic", "id": "Domestic"}
+                int_obj = International(international)
+                int_id = int_obj.create_international()
 
             ground_id = session.run(query).single()[0]
             city_id = City(self.ground_loc).createcity()
-            state_id = State(self.ground_loc).createstate()
-            country_id = Country(self.ground_loc).createcountry()
+            state_id = State(self.ground_loc).create_state()
+            country_id = Country(self.ground_loc).create_country()
             query = '''MATCH (a:Ground),(b:City)
                            WHERE a.ground_id = '%s' AND b.city_id = '%s'
-                           CREATE (a)-[r:at]->(b)'''%(ground_id,city_id)
+                           CREATE (a)-[r:PRESENT_AT]->(b)''' % (ground_id, city_id)
             session.run(query)
             query = '''MATCH (a:City),(b:State)
                            WHERE a.city_id = '%s' AND b.state_id = '%s'
-                           CREATE (a)-[r:in]->(b)'''%(city_id,state_id)
+                           CREATE (a)-[r:PRESENT_IN]->(b)''' % (city_id, state_id)
             session.run(query)
             query = '''MATCH (a:State),(b:Country)
                            WHERE a.state_id = '%s' AND b.country_id = '%s'
-                           CREATE (a)-[r:in]->(b)'''%(state_id,country_id)
+                           CREATE (a)-[r:PRESENT_IN]->(b)''' % (state_id, country_id)
             session.run(query)
             query = '''MATCH (a:Ground),(b:International)
                            WHERE a.ground_id = '%s' AND b.int_id = '%s'
-                           CREATE (a)-[r:hosts]->(b)'''%(ground_id,int_id)
+                           CREATE (a)-[r:HOSTS]->(b)''' % (ground_id, int_id)
             session.run(query)
             return ground_id
 
-        # return ground_id[0][self.nodeattr]
         for g_id in ground_id:
             return g_id
 
 
-
 class City:
-    def __init__(self,cityObj):
-        self.city_name = cityObj["city"]
-        self.city_id = cityObj["city"]
-        self.nodetype = "City"
-        self.nodeattr = "city_id"
+    def __init__(self, city_obj):
+        self.city_name = city_obj["city"]
+        self.city_id = city_obj["city"]
+        self.node_type = "City"
+        self.node_attr = "city_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     def createcity(self):
-        city_id =  findnode(self.nodetype,self.nodeattr,self.city_id)
+        city_id = find_node(self.node_type, self.node_attr, self.city_id)
         if city_id is None:
-            query = '''CREATE(n:City{city_name:"%s",%s:"%s"}) RETURN n.city_id'''%(self.city_name,self.nodeattr,self.city_id)
+            query = '''CREATE(n:City{city_name:"%s",%s:"%s",time_created:"%s"}) 
+                       RETURN n.city_id''' % (self.city_name, self.node_attr, self.city_id, self.time_created)
             city_id = session.run(query).single()[0]
             return city_id
 
         for c_id in city_id:
             return c_id
 
-class State:
-    def __init__(self,stateObj):
-        self.state_name = stateObj["state"]
-        self.state_id = stateObj["state"]
-        self.nodetype = "State"
-        self.nodeattr = "state_id"
 
-    def createstate(self):
-        state_id =  findnode(self.nodetype,self.nodeattr,self.state_id)
+class State:
+    def __init__(self, state_obj):
+        self.state_name = state_obj["state"]
+        self.state_id = state_obj["state"]
+        self.node_type = "State"
+        self.node_attr = "state_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def create_state(self):
+        state_id = find_node(self.node_type, self.node_attr, self.state_id)
         if state_id is None:
-            query = '''CREATE(n:State{state_name:"%s",%s:"%s"}) RETURN n.state_id'''%(self.state_name,self.nodeattr,self.state_id)
+            query = '''CREATE(n:State{state_name:"%s",%s:"%s",time_created:"%s"}) 
+                       RETURN n.state_id''' % (self.state_name, self.node_attr, self.state_id, self.time_created)
             state_id = session.run(query).single()[0]
             return state_id
 
         for s_id in state_id:
             return s_id
 
-class Country:
-    def __init__(self,countryObj):
-        self.country_name = countryObj["country"]
-        self.country_id = countryObj["country"]
-        self.nodetype = "Country"
-        self.nodeattr = "country_id"
 
-    def createcountry(self):
-        country_id =  findnode(self.nodetype,self.nodeattr,self.country_id)
+class Country:
+    def __init__(self, country_obj):
+        self.country_name = country_obj["country"]
+        self.country_id = country_obj["country"]
+        self.node_type = "Country"
+        self.node_attr = "country_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def create_country(self):
+        country_id = find_node(self.node_type, self.node_attr, self.country_id)
         if country_id is None:
             query = '''CREATE(n:Country{country_name:"%s",
-                       %s:"%s"}) RETURN n.country_id'''%(self.country_name,
-                       self.nodeattr,self.country_id)
+                       %s:"%s",time_created:"%s"}) 
+                       RETURN n.country_id''' % (self.country_name, 
+                       self.node_attr, self.country_id, self.time_created)
             country_id = session.run(query).single()[0]
             return country_id
 
         for c_id in country_id:
             return c_id
 
-class International:
-    def __init__(self,internationalObj):
-        self.name = internationalObj["name"]
-        self.int_id = internationalObj["id"]
-        self.nodetype = "International"
-        self.nodeattr = "int_id"
 
-    def createinternational(self):
-        int_id = findnode(self.nodetype,self.nodeattr,self.int_id)
+class International:
+    def __init__(self, international_obj):
+        self.name = international_obj["name"]
+        self.int_id = international_obj["id"]
+        self.node_type = "International"
+        self.node_attr = "int_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def create_international(self):
+        int_id = find_node(self.node_type, self.node_attr, self.int_id)
         if int_id is None:
-            query = '''CREATE(n:International{name:"%s",int_id:"%s"}) RETURN n.int_id'''%(self.name,self.int_id)
+            query = '''CREATE(n:International{name:"%s",int_id:"%s",time_created:"%s"}) 
+                       RETURN n.int_id''' % (self.name, self.int_id, self.time_created)
             int_id = session.run(query).single()[0]
             return int_id
 
         for i_id in int_id:
             return i_id
 
-class Match:
-    def __init__(self,sportObj):
-        self.match_name = sportObj["name"]
-        self.match_id = sportObj["match_id"]
-        self.team_sport = sportObj["team_sport"]
-        self.members_count = sportObj["members_count"]
-        self.match_date = sportObj["match_date"]
-        self.match_winner = sportObj["winner_team_id"]
-        self.match_player = sportObj["player_of_the_match"]
-        self.match_ground = sportObj["ground_id"]
-        self.nodetype = "Match"
-        self.nodeattr = "match_id"
 
-    def creatematch(self,teamObj):
-        match_id =  findnode(self.nodetype,self.nodeattr,self.match_id)
+class Match:
+    def __init__(self, sport_obj):
+        self.match_name = sport_obj["name"]
+        self.match_id = sport_obj["match_id"]
+        self.team_sport = sport_obj["team_sport"]
+        self.members_count = sport_obj["members_count"]
+        self.match_date = sport_obj["match_date"]
+        self.match_winner = sport_obj["winner_team_id"]
+        self.match_player = sport_obj["player_of_the_match"]
+        self.match_ground = sport_obj["ground_id"]
+        self.node_type = "Match"
+        self.node_attr = "match_id"
+        self.time_created = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    def create_match(self, team_obj):
+        match_id = find_node(self.node_type, self.node_attr, self.match_id)
         if match_id is None:
-            query = '''CREATE(n:Match{
-                       match_name:"%s",
-                       match_id:"%s",
-                       team_sport:"%s",
-                       members_count:"%s",
-                       match_date:"%s"
-                       }) RETURN n.match_id'''%(self.match_name,
-                       self.match_id,
-                       self.team_sport,
-                       self.members_count,
-                       self.match_date)
+            query = '''CREATE(n:Match{match_name:"%s", match_id:"%s",
+                       team_sport:"%s", members_count:"%s",
+                       match_date:"%s", time_created:"%s"
+                       }) RETURN n.match_id''' % (self.match_name,
+                       self.match_id, self.team_sport,
+                       self.members_count, self.match_date,
+                       self.time_created)
             match_id = session.run(query).single()[0]
             query = '''MATCH (a:Match),(b:Player)
                            WHERE a.match_id = "%s" AND b.player_id = "%s"
-                           CREATE (a)-[r:PLAYER_OF_THE_MATCH]->(b)'''%(match_id,self.match_player)
+                           CREATE (a)-[r:PLAYER_OF_THE_MATCH]->(b)''' % (match_id, self.match_player)
             session.run(query)
             query = '''MATCH (a:Match),(b:Ground)
-                           WHERE a.match_id = "%s" AND b.ground_id = "%s"
-                           CREATE (a)-[r:PLAYED_AT]->(b)'''%(match_id,self.match_ground)
+                       WHERE a.match_id = "%s" AND b.ground_id = "%s"
+                       CREATE (a)-[r:PLAYED_AT]->(b)''' % (match_id, self.match_ground)
             session.run(query)
-            
+
             query = '''MATCH (a:Match),(b:Team)
                        WHERE a.match_id = "%s" AND b.team_id="%s"
-                       CREATE (a)-[r:WINNER]->(b)'''%(match_id,self.match_winner)
+                       CREATE (a)-[r:WINNER]->(b)''' % (match_id, self.match_winner)
             session.run(query)
-            for team in teamObj:
+            for team in team_obj:
                 team_id = team["id"]
                 query = '''MATCH (a:Team),(b:Match)
                            WHERE a.team_id = "%s" AND b.match_id ="%s"
-                           CREATE (a)-[r:PLAYED]->(b)'''%(team_id,match_id)
+                           CREATE (a)-[r:PLAYED]->(b)''' % (team_id, match_id)
                 session.run(query)
-            # print(team_id)
-            # print(teamObj)
-            # for team in teamObj:
-            #     team_id = team["id"]
-            #     print(team_id)
-            #     print("List of teams")
-            #     query = '''MATCH (a:Team),(b:Match)
-            #                WHERE a.team_id = "%s" AND b.macth_id = "%s"
-            #                CREATE (a)-[r:PLAYED]->(b)'''%(team_id,match_id)
-            #     session.run(query)
-            #     if team_id is not self.match_winner:
-            #         query = '''MATCH (a:Team),(b:Team)
-            #                WHERE a.team_id = "%s" AND b.macth_id = "%s"
-            #                CREATE (a)-[r:PLAYED_WITH]->(b)'''%(team_id,self.match_winner)
-            #         session.run(query)
-
-
-
-
-
-
-
-
-
-
-
-
+                if team_id != self.match_winner:
+                    query = '''MATCH(a:Team),(b:Team)
+                               WHERE a.team_id = "%s" AND b.team_id = "%s"
+                               CREATE (a)-[r:PLAYED_WITH]->(b)''' % (team_id, self.match_winner)
+                    session.run(query)
