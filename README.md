@@ -59,3 +59,6 @@ C. Run
 # Note
 1. If you are trying to see members without specifying the team name inside the url then you will get error message.
 2. Do not install drivers with pip as it will install for python 2.X which is not required by the application. Make sure whenever you are installing anything on virtual environment using pip wheel, put pip3 instead pip
+
+# Contribution
+I would like to thank Vinit Payal for helping me out throughout the project development phase. It would have been difficult for me without clarifying doubts regarding the project.  
