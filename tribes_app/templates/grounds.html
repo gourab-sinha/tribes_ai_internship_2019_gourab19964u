@@ -1,0 +1,15 @@
+{%extends "main.html" %}
+{% block content %}
+<center>
+	<ul style="list-style: none;">
+		{% for ground in grounds %}
+			<li>
+				Ground Name: {{ground[0]}}<br>
+				Ground ID: {{ground[1]}}<br>
+				Hosts International: {{ground[2]}}<br>
+			</li>
+		{% endfor %}
+	</ul>
+</center>
+
+{% endblock %}

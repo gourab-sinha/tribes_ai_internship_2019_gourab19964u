@@ -1,0 +1,17 @@
+{%extends "main.html" %}
+{% block content %}
+
+<center>
+	{{team_name}}
+	<ul style="list-style: none;">
+		{% for member in members %}
+			<li>
+				Player name: {{member[0]}}<br>
+				Player age: {{member[1]}}<br>
+				Player id: {{member[2]}}<br>
+			</li>
+		{% endfor %}
+	</ul>
+</center>
+
+{% endblock %}
