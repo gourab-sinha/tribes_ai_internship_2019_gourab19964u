@@ -4,12 +4,7 @@
 # -------------------------------------------------
 from flask import (Flask,
                    render_template,
-                   request,
-                   redirect,
-                   jsonify,
-                   url_for,
-                   flash,
-                   make_response)
+                   url_for)
 from datetime import datetime
 from neo4j import GraphDatabase
 import json
@@ -50,6 +45,7 @@ def Teams():
   #return '''<html><body>Hello</body></html>'''
   return render_template('teams.html', teams = teams)
 
+
 @app.route('/member/<string:team_name>')
 @app.route('/members/<string:team_name>')
 @app.route('/members/<string:team_name>')
@@ -63,9 +59,12 @@ def Members(team_name):
   for player in result:
     playerlist.append(player)
 
-  #return '''<html><body>Hello</body></html>'''
   return render_template('members.html', members = playerlist, team_name = str(team_name))
 
+
+@app.route('/Ground/')
+@app.route('/ground/')
+@app.route('/Grounds/')
 @app.route('/grounds/')
 def Grounds():
   query = '''MATCH(n:Ground) RETURN n.ground_name,n.ground_id,n.host_international'''

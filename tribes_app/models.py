@@ -11,7 +11,7 @@ import datetime
 session = graph.session()
 
 
-# Function to find a node in Graph Database
+# Function to find a node in Graph Database to avoid redundency
 def find_node(node_type, node_attr, node_id):
     query = "MATCH (j:%s {%s:'%s'}) RETURN j.%s" % (node_type, node_attr, str(node_id), node_attr)
     obj = session.run(query).single()
@@ -42,7 +42,7 @@ class Team:
                 player_id = member_obj.create_member()
                 query = '''MATCH (a:Player),(b:Team)
                            WHERE a.player_id = '%s' AND b.team_id = '%s'
-                           CREATE (a)-[:Play_for]->(b)''' % (player_id, team_id)
+                           CREATE (a)-[:PlAY_FOR]->(b)''' % (player_id, team_id)
                 session.run(query)
 
 
@@ -83,7 +83,8 @@ class Ground:
         if ground_id is None:
             query = '''CREATE(n:Ground{ground_name:"%s",%s:"%s",
                        host_international:"%s",time_created:"%s"}) RETURN n.ground_id''' % (
-                       self.ground_name, self.node_attr, self.ground_id, self.ground_host, self.time_created)
+                       self.ground_name, self.node_attr, self.ground_id, self.ground_host, 
+                       self.time_created)
 
             if self.ground_host is True:
                 international = {"name": "International", "id": "International"}
@@ -132,7 +133,8 @@ class City:
         city_id = find_node(self.node_type, self.node_attr, self.city_id)
         if city_id is None:
             query = '''CREATE(n:City{city_name:"%s",%s:"%s",time_created:"%s"}) 
-                       RETURN n.city_id''' % (self.city_name, self.node_attr, self.city_id, self.time_created)
+                       RETURN n.city_id''' % (self.city_name, self.node_attr, 
+                       self.city_id, self.time_created)
             city_id = session.run(query).single()[0]
             return city_id
 
@@ -152,7 +154,8 @@ class State:
         state_id = find_node(self.node_type, self.node_attr, self.state_id)
         if state_id is None:
             query = '''CREATE(n:State{state_name:"%s",%s:"%s",time_created:"%s"}) 
-                       RETURN n.state_id''' % (self.state_name, self.node_attr, self.state_id, self.time_created)
+                       RETURN n.state_id''' % (self.state_name, self.node_attr, 
+                       self.state_id, self.time_created)
             state_id = session.run(query).single()[0]
             return state_id
 
